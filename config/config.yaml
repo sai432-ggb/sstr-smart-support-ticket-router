@@ -1,0 +1,300 @@
+# Smart Support Ticket Router - Configuration
+
+# Application Settings
+app:
+  name: "Smart Support Ticket Router"
+  version: "1.0.0"
+  environment: "development"  # development, staging, production
+  debug: true
+
+# API Settings
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 4
+  reload: true
+  log_level: "info"
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:8000"
+  rate_limit:
+    enabled: true
+    max_requests: 100
+    window_seconds: 60
+
+# Database Settings
+database:
+  type: "postgresql"  # sqlite, postgresql, mysql
+  host: "localhost"
+  port: 5432
+  name: "sstr_db"
+  user: "sstr_user"
+  password: "${DB_PASSWORD}"
+  pool_size: 10
+  max_overflow: 20
+
+# Model Settings
+model:
+  # Classification Model
+  classifier:
+    algorithm: "ensemble"  # ensemble, random_forest, xgboost, logistic
+    model_path: "models/saved_models/classifier_v1.pkl"
+    vectorizer_path: "models/saved_models/vectorizer_v1.pkl"
+    
+    # Feature Engineering
+    max_features: 5000
+    ngram_range: [1, 2]
+    min_df: 5
+    max_df: 0.8
+    
+    # Model Parameters
+    ensemble_weights:
+      random_forest: 0.4
+      xgboost: 0.4
+      logistic: 0.2
+    
+    # Training
+    test_size: 0.2
+    random_state: 42
+    cv_folds: 5
+    
+    # Categories
+    categories:
+      - "Technical Support"
+      - "Billing & Payments"
+      - "Product Inquiry"
+      - "Account Management"
+      - "Feature Request"
+      - "Bug Report"
+      - "General Inquiry"
+  
+  # Priority Detection
+  priority_detector:
+    model_path: "models/saved_models/priority_detector_v1.pkl"
+    sentiment_threshold: -0.3  # Negative sentiment = higher priority
+    urgency_keywords:
+      critical: ["urgent", "emergency", "critical", "asap", "immediately", "down", "broken"]
+      high: ["important", "soon", "problem", "issue", "error", "cannot", "can't"]
+      medium: ["question", "help", "how to", "when", "clarification"]
+      low: ["wondering", "curious", "suggest", "feedback", "enhancement"]
+  
+  # Forecasting Model
+  forecaster:
+    method: "prophet"  # prophet, sarima, lstm
+    model_path: "models/saved_models/forecaster_v1.pkl"
+    
+    # Prophet Settings
+    seasonality_mode: "multiplicative"
+    yearly_seasonality: true
+    weekly_seasonality: true
+    daily_seasonality: false
+    
+    # Forecast Settings
+    default_periods: 7  # days
+    confidence_interval: 0.95
+    
+    # Retraining
+    retrain_interval_days: 7
+    min_data_points: 100
+
+# Feature Engineering
+features:
+  text_features:
+    - "tfidf"
+    - "word_count"
+    - "char_count"
+    - "sentiment"
+    - "avg_word_length"
+    - "punctuation_count"
+    - "capital_ratio"
+  
+  temporal_features:
+    - "hour"
+    - "day_of_week"
+    - "is_weekend"
+    - "is_business_hours"
+    - "month"
+    - "quarter"
+  
+  categorical_features:
+    - "customer_tier"
+    - "previous_ticket_category"
+    - "communication_channel"
+
+# Data Processing
+data:
+  raw_data_path: "data/raw/"
+  processed_data_path: "data/processed/"
+  features_data_path: "data/features/"
+  
+  preprocessing:
+    lowercase: true
+    remove_html: true
+    remove_urls: true
+    remove_emails: true
+    remove_special_chars: false
+    remove_stopwords: true
+    lemmatize: true
+    
+  validation:
+    max_text_length: 10000
+    min_text_length: 10
+    required_fields: ["subject", "description"]
+
+# Training Settings
+training:
+  batch_size: 32
+  epochs: 50
+  early_stopping_patience: 5
+  learning_rate: 0.001
+  
+  # Hyperparameter Tuning
+  use_hyperparameter_tuning: true
+  tuning_method: "random_search"  # grid_search, random_search, bayesian
+  n_iterations: 20
+  
+  # Model Selection
+  use_cross_validation: true
+  scoring_metric: "f1_weighted"
+  
+  # Imbalanced Data
+  handle_imbalance: true
+  sampling_strategy: "smote"  # smote, undersample, oversample
+
+# Monitoring
+monitoring:
+  enabled: true
+  log_predictions: true
+  track_performance: true
+  
+  # Metrics to Track
+  metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
+    - "f1_score"
+    - "confusion_matrix"
+    - "response_time"
+  
+  # Alerts
+  alerts:
+    accuracy_threshold: 0.85
+    response_time_threshold_ms: 500
+    error_rate_threshold: 0.05
+  
+  # Drift Detection
+  drift_detection:
+    enabled: true
+    method: "kolmogorov_smirnov"
+    check_interval_hours: 24
+    threshold: 0.05
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "json"  # text, json
+  output: "file"  # console, file, both
+  file_path: "logs/sstr.log"
+  max_file_size_mb: 100
+  backup_count: 5
+  
+  # Component-specific logging
+  components:
+    api: "INFO"
+    model: "INFO"
+    data: "DEBUG"
+    training: "DEBUG"
+
+# Security
+security:
+  api_key_enabled: true
+  jwt_enabled: false
+  jwt_secret: "${JWT_SECRET}"
+  jwt_algorithm: "HS256"
+  jwt_expiration_hours: 24
+  
+  # Rate Limiting
+  rate_limiting:
+    enabled: true
+    strategy: "fixed_window"
+    max_requests: 100
+    window_seconds: 60
+
+# Caching
+cache:
+  enabled: true
+  backend: "redis"  # memory, redis, memcached
+  redis_host: "localhost"
+  redis_port: 6379
+  redis_db: 0
+  ttl_seconds: 3600
+
+# MLOps
+mlops:
+  experiment_tracking: "mlflow"
+  model_registry: true
+  versioning: true
+  
+  # MLflow Settings
+  mlflow:
+    tracking_uri: "http://localhost:5000"
+    experiment_name: "ticket_classification"
+    artifact_location: "models/experiments/"
+  
+  # Model Deployment
+  deployment:
+    auto_deploy: false
+    staging_threshold: 0.90
+    production_threshold: 0.95
+    rollback_on_failure: true
+  
+  # Retraining
+  retraining:
+    enabled: true
+    schedule: "0 2 * * 0"  # Weekly at 2 AM
+    trigger_on_drift: true
+    min_improvement: 0.02
+
+# Business Rules
+business:
+  # Routing Rules
+  routing:
+    Technical Support:
+      teams: ["Backend Team", "Frontend Team", "DevOps"]
+      sla_hours: 4
+    Billing & Payments:
+      teams: ["Finance Team"]
+      sla_hours: 24
+    Product Inquiry:
+      teams: ["Sales Team", "Product Team"]
+      sla_hours: 12
+    Account Management:
+      teams: ["Customer Success"]
+      sla_hours: 8
+  
+  # Priority Rules
+  priority:
+    critical:
+      response_time_minutes: 15
+      escalation_time_hours: 1
+    high:
+      response_time_minutes: 60
+      escalation_time_hours: 4
+    medium:
+      response_time_minutes: 240
+      escalation_time_hours: 24
+    low:
+      response_time_minutes: 1440
+      escalation_time_hours: 72
+  
+  # Customer Tiers
+  customer_tiers:
+    enterprise:
+      priority_boost: 1
+      sla_multiplier: 0.5
+    business:
+      priority_boost: 0
+      sla_multiplier: 1.0
+    free:
+      priority_boost: -1
+      sla_multiplier: 1.5
